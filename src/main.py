@@ -1,5 +1,5 @@
 #환경 변수
-from config import settings
+from src.config import settings
 
 #FastAPI
 from fastapi import FastAPI
