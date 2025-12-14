@@ -143,7 +143,84 @@ def get_user_by_id(
         payload=UserGetMeResponse.model_validate(user)
     )
 
-    
+
 # Update (유저 정보 수정)
+
+# 내 정보 수정
+@router.patch(
+    "/me",
+    summary="내 정보 수정",
+    response_model=APIResponse[UserGetMeResponse],
+    status_code=status.HTTP_200_OK
+)
+def update_me(
+    request: Request,
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    현재 로그인한 사용자의 정보를 수정합니다.
+    - 이름 변경: name 필드만 전송
+    - 비밀번호 변경: current_password와 new_password 모두 필요
+    """
+    # 수정할 내용이 없는 경우
+    if not user_update.name and not user_update.new_password:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=400,
+                code="BAD_REQUEST",
+                message="수정할 내용이 없습니다"
+            ).model_dump(mode="json")
+        )
+
+    # 비밀번호 변경 요청인 경우
+    if user_update.new_password:
+        # 현재 비밀번호 필수 확인
+        if not user_update.current_password:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=ErrorResponse(
+                    timestamp=datetime.now(),
+                    path=str(request.url.path),
+                    status=400,
+                    code="VALIDATION_FAILED",
+                    message="비밀번호 변경 시 현재 비밀번호가 필요합니다",
+                    details={"current_password": "현재 비밀번호를 입력해주세요"}
+                ).model_dump(mode="json")
+            )
+
+        # 현재 비밀번호 검증
+        if not verify_password(user_update.current_password, str(current_user.password_hash)):
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content=ErrorResponse(
+                    timestamp=datetime.now(),
+                    path=str(request.url.path),
+                    status=401,
+                    code="UNAUTHORIZED",
+                    message="현재 비밀번호가 일치하지 않습니다"
+                ).model_dump(mode="json")
+            )
+
+        # 새 비밀번호로 변경
+        current_user.password_hash = hash_password(user_update.new_password)
+
+    # 이름 변경
+    if user_update.name:
+        current_user.name = user_update.name
+
+    db.commit()
+    db.refresh(current_user)
+
+    return APIResponse(
+        is_success=True,
+        message="프로필 수정 성공",
+        payload=UserGetMeResponse.model_validate(current_user)
+    )
+
 
 # Delete (유저 탈퇴)
