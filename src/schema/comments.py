@@ -22,3 +22,31 @@ class CommentCreateResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class CommentAuthor(BaseModel):
+    """댓글 작성자 정보"""
+    name: str
+
+
+class CommentListItem(BaseModel):
+    """댓글 목록 아이템"""
+    id: int
+    author: CommentAuthor
+    content: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CommentPagination(BaseModel):
+    """댓글 페이지네이션 정보"""
+    page: int
+    totalPages: int
+    totalElements: int
+
+
+class CommentListResponse(BaseModel):
+    """댓글 목록 조회 응답"""
+    comments: list[CommentListItem]
+    pagination: CommentPagination
