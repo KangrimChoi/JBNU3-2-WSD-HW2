@@ -111,29 +111,6 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 
 ---
 
-## 역할/권한표
-
-| 엔드포인트 | 비인증 | USER | ADMIN |
-|-----------|:------:|:----:|:-----:|
-| `GET /api/health` | O | O | O |
-| `POST /api/auth/login` | O | O | O |
-| `POST /api/users` (회원가입) | O | O | O |
-| `GET /api/books` | O | O | O |
-| `GET /api/books/{id}` | O | O | O |
-| `GET /api/books/{id}/reviews` | O | O | O |
-| `GET /api/books/{id}/comments` | O | O | O |
-| `POST /api/books` | X | X | O |
-| `PATCH /api/books/{id}` | X | X | O |
-| `DELETE /api/books/{id}` | X | X | O |
-| `POST /api/books/{id}/reviews` | X | O | O |
-| `POST /api/books/{id}/comments` | X | O | O |
-| `POST /api/me/library` | X | O | O |
-| `POST /api/me/wishlist` | X | O | O |
-| `GET /api/users` (목록) | X | X | O |
-| `GET /api/users/{id}` | X | X | O |
-
----
-
 ## 예제 계정
 
 | 역할 | 이메일 | 비밀번호 | 비고 |
@@ -160,75 +137,14 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 
 ---
 
-## 엔드포인트 요약표
+## API 문서
 
-### 인증 (Auth) - 3개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/auth/login` | 로그인 |
-| POST | `/api/auth/refresh` | 토큰 갱신 |
-| POST | `/api/auth/logout` | 로그아웃 |
+API 엔드포인트 상세 정보, 요청/응답 형식, 권한 매트릭스는 [API 설계 문서](docs/api-design.md)를 참고하세요.
 
-### 사용자 (Users) - 6개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/users` | 회원가입 |
-| GET | `/api/users/me` | 내 정보 조회 |
-| PATCH | `/api/users/me` | 내 정보 수정 |
-| DELETE | `/api/users/me` | 회원 탈퇴 |
-| GET | `/api/users` | 사용자 목록 (ADMIN) |
-| GET | `/api/users/{id}` | 사용자 조회 (ADMIN) |
+- 총 **34개** API 엔드포인트 구현
+- Auth(3), Users(6), Books(5), Reviews(7), Comments(6), Library(3), Wishlist(3), System(1)
 
-### 도서 (Books) - 5개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/books` | 도서 등록 (ADMIN) |
-| GET | `/api/books` | 도서 목록 |
-| GET | `/api/books/{id}` | 도서 상세 |
-| PATCH | `/api/books/{id}` | 도서 수정 (ADMIN) |
-| DELETE | `/api/books/{id}` | 도서 삭제 (ADMIN) |
-
-### 리뷰 (Reviews) - 7개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/books/{id}/reviews` | 리뷰 작성 |
-| GET | `/api/books/{id}/reviews` | 리뷰 목록 |
-| GET | `/api/books/{id}/reviews/top` | Top-N 리뷰 |
-| PATCH | `/api/reviews/{id}` | 리뷰 수정 |
-| DELETE | `/api/reviews/{id}` | 리뷰 삭제 |
-| POST | `/api/reviews/{id}/like` | 좋아요 |
-| DELETE | `/api/reviews/{id}/like` | 좋아요 취소 |
-
-### 댓글 (Comments) - 6개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/books/{id}/comments` | 댓글 작성 |
-| GET | `/api/books/{id}/comments` | 댓글 목록 |
-| PATCH | `/api/comments/{id}` | 댓글 수정 |
-| DELETE | `/api/comments/{id}` | 댓글 삭제 |
-| POST | `/api/comments/{id}/like` | 좋아요 |
-| DELETE | `/api/comments/{id}/like` | 좋아요 취소 |
-
-### 내 서재 (Library) - 3개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/me/library` | 서재 추가 |
-| GET | `/api/me/library` | 서재 목록 |
-| DELETE | `/api/me/library/{book_id}` | 서재 삭제 |
-
-### 위시리스트 (Wishlist) - 3개
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/me/wishlist` | 위시리스트 추가 |
-| GET | `/api/me/wishlist` | 위시리스트 목록 |
-| DELETE | `/api/me/wishlist/{book_id}` | 위시리스트 삭제 |
-
-### 시스템 - 1개
-| Method | URL | 설명 |
-|--------|-----|------|
-| GET | `/api/health` | 헬스체크 |
-
-**총 34개 API**
+---
 
 ## postman 스크립트
  | 스크립트 | 요청        | 기능                                  |
