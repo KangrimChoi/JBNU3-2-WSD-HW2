@@ -374,3 +374,52 @@ async def update_book(
         message="도서가 성공적으로 수정되었습니다.",
         payload=response_data
     )
+
+
+# Delete (도서 삭제) - 관리자 전용
+@router.delete(
+    "/{book_id}",
+    summary="도서 삭제 (관리자)",
+    response_model=APIResponse[None],
+    status_code=status.HTTP_200_OK
+)
+async def delete_book(
+    request: Request,
+    book_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """
+    도서를 삭제합니다. (Soft Delete)
+    - 관리자 권한 필요
+    - 이미 삭제된 도서는 삭제 불가
+    """
+    # 도서 조회
+    book = db.query(Book).filter(
+        Book.id == book_id,
+        Book.deleted_at.is_(None)
+    ).first()
+
+    #도서 존재 여부 확인
+    if not book:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=404,
+                code="BOOK_NOT_FOUND",
+                message="해당 도서를 찾을 수 없습니다",
+                details={"book_id": book_id}
+            ).model_dump(mode="json")
+        )
+
+    # Soft Delete (deleted_at 설정)
+    book.deleted_at = datetime.now()
+    db.commit()
+
+    return APIResponse(
+        is_success=True,
+        message="도서를 성공적으로 삭제했습니다.",
+        payload=None
+    )
