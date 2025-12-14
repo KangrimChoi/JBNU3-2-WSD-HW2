@@ -238,3 +238,41 @@ def update_me(
 
 
 # Delete (유저 탈퇴)
+
+# 회원 탈퇴
+@router.delete(
+    "/me",
+    summary="회원 탈퇴",
+    response_model=APIResponse[None],
+    status_code=status.HTTP_200_OK
+)
+def delete_me(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    현재 로그인한 사용자의 계정을 삭제합니다.
+    - 관리자 계정은 API를 통한 삭제가 불가합니다.
+    """
+    # 관리자 계정 삭제 차단
+    if str(current_user.role) == "admin":
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=403,
+                code="FORBIDDEN",
+                message="관리자 계정은 API를 통해 삭제할 수 없습니다"
+            ).model_dump(mode="json")
+        )
+
+    db.delete(current_user)
+    db.commit()
+
+    return APIResponse(
+        is_success=True,
+        message="회원 탈퇴가 완료되었습니다",
+        payload=None
+    )
