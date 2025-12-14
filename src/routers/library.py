@@ -126,7 +126,7 @@ async def get_library(
     library_items = db.query(LibraryItem).filter(
         LibraryItem.user_id == current_user.id
     ).options(
-        joinedload(LibraryItem.book)
+        joinedload(LibraryItem.book).joinedload(Book.authors)
     ).order_by(LibraryItem.created_at.desc()).all()
 
     # 응답 생성
@@ -135,12 +135,14 @@ async def get_library(
         book = item.book
         # 삭제된 도서는 제외
         if book and book.deleted_at is None:
+            # 첫 번째 저자 이름 가져오기
+            author_name = book.authors[0].name if book.authors else "Unknown"
             items.append(
                 LibraryListItem(
                     book=LibraryBookInfo(
                         id=book.id,
                         title=book.title,
-                        author=LibraryBookAuthor(name=book.author),
+                        author=LibraryBookAuthor(name=author_name),
                         isbn=book.isbn
                     ),
                     createdAt=item.created_at
