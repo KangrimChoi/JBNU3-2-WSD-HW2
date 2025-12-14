@@ -85,32 +85,6 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 
 ---
 
-## 인증 플로우
-
-```
-1. 회원가입: POST /api/users
-   └─ 이메일, 비밀번호, 이름 입력
-
-2. 로그인: POST /api/auth/login
-   └─ Access Token + Refresh Token 발급
-
-3. API 요청: Authorization: Bearer {access_token}
-   └─ 인증 필요 API에 헤더 포함
-
-4. 토큰 갱신: POST /api/auth/refresh
-   └─ Refresh Token으로 새 Access Token 발급
-
-5. 로그아웃: POST /api/auth/logout
-   └─ Access Token 블랙리스트 등록, Refresh Token 삭제
-```
-
-### JWT 토큰 규격
-- **Access Token**: 만료 60분 (설정 가능)
-- **Refresh Token**: 만료 7일 (설정 가능)
-- **헤더 형식**: `Authorization: Bearer {token}`
-
----
-
 ## 예제 계정
 
 | 역할 | 이메일 | 비밀번호 | 비고 |
@@ -199,5 +173,5 @@ API 엔드포인트 상세 정보, 요청/응답 형식, 권한 매트릭스는 
 - **Auth**: JWT (python-jose)
 - **Docs**: Swagger/OpenAPI
 
----
+상세 아키텍처, 계층 구조, 의존성은 [아키텍처 문서](docs/architecture.md)를 참고하세요.
 
