@@ -163,7 +163,21 @@ def update_me(
     현재 로그인한 사용자의 정보를 수정합니다.
     - 이름 변경: name 필드만 전송
     - 비밀번호 변경: current_password와 new_password 모두 필요
+    - 관리자 계정은 API를 통한 수정이 불가합니다.
     """
+    # 관리자 계정 수정 차단
+    if str(current_user.role) == "admin":
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=403,
+                code="FORBIDDEN",
+                message="관리자 계정은 API를 통해 수정할 수 없습니다"
+            ).model_dump(mode="json")
+        )
+
     # 수정할 내용이 없는 경우
     if not user_update.name and not user_update.new_password:
         return JSONResponse(
