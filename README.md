@@ -155,6 +155,9 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 | 계정 | `root` / (설정된 비밀번호) |
 | 권한 | 모든 테이블 읽기/쓰기 |
 
+## DB ERD
+![alt text](image.png)
+
 ---
 
 ## 엔드포인트 요약표
