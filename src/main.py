@@ -5,7 +5,7 @@ from src.config import settings
 from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from src.routers import users, auth, health
+from src.routers import users, auth, books, health
 from src.auth.jwt import APIException
 from src.schema.common import ErrorResponse
 
@@ -27,6 +27,10 @@ tags_metadata = [
         "description": "인증 및 토큰 관리 API",
     },
     {
+        "name": "Books",
+        "description": "도서 관리 API",
+    },
+    {
         "name": "Health",
         "description": "서버 상태 확인 API",
     },
@@ -36,6 +40,7 @@ tags_metadata = [
 app = FastAPI(openapi_tags = tags_metadata)
 app.include_router(users.router)
 app.include_router(auth.router)
+app.include_router(books.router)
 app.include_router(health.router)
 
 #전역 에러 처리
