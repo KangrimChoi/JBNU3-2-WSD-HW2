@@ -10,7 +10,7 @@ T = TypeVar("T")
 
 class APIResponse(BaseModel, Generic[T]):
     """공통 API 응답 래퍼"""
-    isSuccess: bool
+    is_success: bool
     message: str
     payload: Optional[T] = None
 

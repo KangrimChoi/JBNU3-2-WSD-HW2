@@ -173,3 +173,6 @@ CLAUDE.md
 
 # JCloud
 *.pem
+
+# personal docs
+API-docs.pdf

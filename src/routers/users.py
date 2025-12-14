@@ -10,15 +10,10 @@ from src.database import get_db
 from src.schema.users import UserCreate, UserCreateResponse, UserGetMeResponse
 from src.schema.common import APIResponse, ErrorResponse
 from src.models.user import User
+from src.auth.password import hash_password
 
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
-
-
-def hash_password(password: str) -> str:
-    """비밀번호 해싱"""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
 
 # ==================== 유저 CRUD ====================
 
@@ -58,7 +53,7 @@ async def create_user(request: Request, user: UserCreate, db: Session = Depends(
     db.refresh(new_user)
 
     return APIResponse(
-        isSuccess=True,
+        is_success=True,
         message="회원가입이 정상적으로 진행되었습니다.",
         payload=UserCreateResponse.model_validate(new_user)
     )
