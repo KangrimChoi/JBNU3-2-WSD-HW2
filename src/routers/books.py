@@ -193,3 +193,61 @@ async def get_books(
         message="도서 목록 조회에 성공했습니다.",
         payload=BookListResponse(books=book_items, pagination=pagination)
     )
+
+
+# Read (도서 상세 조회)
+@router.get(
+    "/{book_id}",
+    summary="도서 상세 조회",
+    response_model=APIResponse[BookListItem],
+    status_code=status.HTTP_200_OK
+)
+async def get_book_detail(
+    request: Request,
+    book_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    특정 도서의 상세 정보를 조회합니다.
+    - 인증 불필요
+    - 삭제된 도서는 조회 불가
+    """
+    book = db.query(Book).options(
+        joinedload(Book.authors),
+        joinedload(Book.categories)
+    ).filter(
+        Book.id == book_id,
+        Book.deleted_at.is_(None)
+    ).first()
+
+    #도서 존재 여부 확인
+    if not book:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=404,
+                code="BOOK_NOT_FOUND",
+                message="해당 도서를 찾을 수 없습니다",
+                details={"book_id": book_id}
+            ).model_dump(mode="json")
+        )
+
+    response_data = BookListItem(
+        id=book.id,
+        title=book.title,
+        categories=[cat.name for cat in book.categories],
+        authors=[auth.name for auth in book.authors],
+        description=book.description,
+        isbn=book.isbn,
+        cover_image_url=book.cover_image_url,
+        price=book.price,
+        publication_date=book.publication_date
+    )
+
+    return APIResponse(
+        is_success=True,
+        message="도서 상세 조회에 성공했습니다.",
+        payload=response_data
+    )
