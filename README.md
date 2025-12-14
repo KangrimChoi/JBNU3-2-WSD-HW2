@@ -156,7 +156,7 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 | 권한 | 모든 테이블 읽기/쓰기 |
 
 ## DB ERD
-![alt text](image.png)
+![alt text](ERD_page-0001.jpg)
 
 ---
 
