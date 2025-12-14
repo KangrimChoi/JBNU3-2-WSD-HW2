@@ -5,7 +5,7 @@ from src.config import settings
 from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from src.routers import users, auth, books, health, reviews, comments, library
+from src.routers import users, auth, books, health, reviews, comments, library, wishlist
 from src.auth.jwt import APIException
 from src.schema.common import ErrorResponse
 
@@ -44,6 +44,10 @@ tags_metadata = [
         "description": "내 라이브러리 관리 API",
     },
     {
+        "name": "Wishlist",
+        "description": "내 위시리스트 관리 API",
+    },
+    {
         "name": "Health",
         "description": "서버 상태 확인 API",
     },
@@ -57,6 +61,7 @@ app.include_router(books.router)
 app.include_router(reviews.router)
 app.include_router(comments.router)
 app.include_router(library.router)
+app.include_router(wishlist.router)
 app.include_router(health.router)
 
 #전역 에러 처리
