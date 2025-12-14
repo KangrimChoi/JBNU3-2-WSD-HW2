@@ -264,7 +264,7 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 ## 기술 스택
 
 - **Backend**: Python 3.11+, FastAPI
-- **Database**: Mariadb 8.0
+- **Database**: Mariadb 15.1
 - **ORM**: SQLAlchemy + Alembic
 - **Cache**: Redis
 - **Auth**: JWT (python-jose)
