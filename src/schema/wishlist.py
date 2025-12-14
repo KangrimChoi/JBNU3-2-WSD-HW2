@@ -49,5 +49,8 @@ class WishlistListResponse(BaseModel):
     """위시리스트 목록 조회 응답"""
     items: list[WishlistListItem]
 
+class WishlistDeleteResponse(BaseModel):
+    """위시리스트 도서 삭제 응답"""
+    bookId: int
 
 

@@ -155,3 +155,50 @@ async def get_wishlist(
     )
 
 
+# Delete (위시리스트 도서 삭제)
+@router.delete(
+    "/wishlist/{book_id}",
+    summary="위시리스트 도서 삭제",
+    response_model=APIResponse[WishlistDeleteResponse],
+    status_code=status.HTTP_200_OK
+)
+async def remove_from_wishlist(
+    request: Request,
+    book_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    내 위시리스트에서 도서를 삭제합니다.
+    - 인증 필요
+    - 본인 위시리스트의 도서만 삭제 가능
+    """
+    # 위시리스트 아이템 조회
+    wishlist_item = db.query(WishlistItem).filter(
+        WishlistItem.user_id == current_user.id,
+        WishlistItem.book_id == book_id
+    ).first()
+
+    # 위시리스트 아이템 존재 여부 확인
+    if not wishlist_item:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=404,
+                code="WISHLIST_ITEM_NOT_FOUND",
+                message="위시리스트에 해당 도서가 없습니다",
+                details={"book_id": book_id}
+            ).model_dump(mode="json")
+        )
+
+    # 위시리스트 아이템 삭제
+    db.delete(wishlist_item)
+    db.commit()
+
+    return APIResponse(
+        is_success=True,
+        message="위시리스트에서 도서가 삭제되었습니다.",
+        payload=WishlistDeleteResponse(bookId=book_id)
+    )
