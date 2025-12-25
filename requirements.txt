@@ -13,3 +13,6 @@
   httpx
   redis
   slowapi
+  authlib
+  itsdangerous
+  firebase-admin
