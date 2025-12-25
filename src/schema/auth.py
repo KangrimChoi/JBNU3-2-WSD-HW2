@@ -13,6 +13,10 @@ class TokenRefresh(BaseModel):
     refresh_token: str = Field(..., json_schema_extra={"example": "eyJhbGciOiJIUzI1NiIs...", "description": "Refresh Token"})
 
 
+class FirebaseLogin(BaseModel):
+    """Firebase 로그인 요청"""
+    id_token: str = Field(..., json_schema_extra={"example": "eyJhbGciOiJSUzI1NiIs...", "description": "Firebase ID Token"})
+
 # ==================== Response Schemas ====================
 class LoginResponse(BaseModel):
     """로그인 응답"""
