@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 
 #내부 모듈
-from src.schema.auth import AuthLogin, LoginResponse, TokenRefresh, TokenRefreshResponse
+from src.schema.auth import AuthLogin, LoginResponse, TokenRefresh, TokenRefreshResponse, FirebaseLogin
 from src.schema.common import APIResponse, ErrorResponse
 from src.database import get_db
 from src.models.user import User
@@ -21,6 +21,7 @@ from src.auth.jwt import (
 )
 from src.auth.password import verify_password, hash_password
 from src.auth.oauth import get_google_oauth_client
+from src.auth.firebase_auth import verify_firebase_token
 from src.redis import (
     store_refresh_token,
     is_valid_refresh_token,
@@ -311,5 +312,107 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
                 status=500,
                 code="INTERNAL_SERVER_ERROR",
                 message=f"Google authentication failed: {str(e)}"
+            ).model_dump(mode="json")
+        )
+
+
+# ==================== 소셜 로그인 (Firebase Auth) ====================
+
+# Firebase 로그인
+@router.post(
+    "/firebase",
+    summary="Firebase 소셜 로그인",
+    response_model=APIResponse[LoginResponse],
+    status_code=status.HTTP_200_OK,
+    responses={
+        401: {"model": ErrorResponse, "description": "Firebase 인증 실패"},
+        500: {"model": ErrorResponse, "description": "서버 내부 오류"},
+    }
+)
+def firebase_login(request: Request, firebase_request: FirebaseLogin, db: Session = Depends(get_db)):
+    """
+    Firebase Authentication 로그인
+    - 클라이언트에서 Firebase로 로그인 후 받은 ID Token을 전송
+    - 서버에서 ID Token 검증 후 JWT 토큰 발급
+    """
+    try:
+        # Firebase ID Token 검증
+        decoded_token = verify_firebase_token(firebase_request.id_token)
+
+        # 사용자 정보 추출
+        email = decoded_token.get('email')
+        name = decoded_token.get('name', email.split('@')[0] if email else 'User')
+
+        if not email:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content=ErrorResponse(
+                    timestamp=datetime.now(),
+                    path=str(request.url.path),
+                    status=401,
+                    code="UNAUTHORIZED",
+                    message="Email not found in Firebase token"
+                ).model_dump(mode="json")
+            )
+
+        # 기존 사용자 조회
+        user = db.query(User).filter(User.email == email).first()
+
+        # 신규 사용자인 경우 자동 회원가입
+        if not user:
+            # 임시 랜덤 비밀번호 생성 (소셜 로그인 사용자는 이 비밀번호를 알 수 없음)
+            random_password = secrets.token_urlsafe(32)
+            hashed_password = hash_password(random_password)
+
+            user = User(
+                email=email,
+                name=name,
+                password_hash=hashed_password,
+                role="user"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+        # JWT 토큰 생성
+        token_data = {"sub": str(user.id), "email": user.email, "role": user.role}
+        access_token = create_access_token(data=token_data)
+        refresh_token = create_refresh_token(data=token_data)
+
+        # Refresh Token을 Redis에 저장
+        refresh_expires_seconds = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+        store_refresh_token(user.id, refresh_token, refresh_expires_seconds)
+
+        return APIResponse(
+            is_success=True,
+            message="Firebase 로그인 성공",
+            payload=LoginResponse(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer"
+            )
+        )
+
+    except ValueError as e:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=401,
+                code="UNAUTHORIZED",
+                message=str(e)
+            ).model_dump(mode="json")
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=ErrorResponse(
+                timestamp=datetime.now(),
+                path=str(request.url.path),
+                status=500,
+                code="INTERNAL_SERVER_ERROR",
+                message=f"Firebase authentication failed: {str(e)}"
             ).model_dump(mode="json")
         )
